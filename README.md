@@ -1,4 +1,4 @@
-# Airbnb JavaScript Style Guide() {
+# JavaScript Style Guide() {
 
 *A mostly reasonable approach to JavaScript*
 
@@ -24,10 +24,7 @@
   1. [Accessors](#accessors)
   1. [Constructors](#constructors)
   1. [Events](#events)
-  1. [Modules](#modules)
-  1. [jQuery](#jquery)
-  1. [ES5 Compatibility](#es5)
-  1. [Testing](#testing)
+  1. [jQuery and Angular](#jquery)
   1. [Performance](#performance)
   1. [Resources](#resources)
   1. [In the Wild](#in-the-wild)
@@ -169,9 +166,24 @@
     }
     ```
 
+   - Prefer using ES5 iteration functions (forEach, filter, some, all, map, and reduce) over for(;;) loops. Exceptions can be made if performance is an issue.
+   
+   ```javascript
+   // bad
+   var numbers = [1, 2, 3],
+       index;
+
+   for(index = 0; index < numbers.length; index++){
+       doSomethingWithANumber(numbers[index]);
+   }
+   
+   // good
+   var numbers = [1, 2, 3];
+   
+   numbers.forEach(doSomethingWithANumber);
+   
     **[[⬆]](#TOC)**
-
-
+    
 ## <a name='strings'>Strings</a>
 
   - Use single quotes `''` for strings
@@ -367,6 +379,34 @@
     // good
     var superPower = new SuperPower();
     ```
+
+  - Avoid "public private" variables. There's no way to enforce their privacy, so they create a false sense of security which will, eventually, fail.
+    
+    ```javascript
+    // bad
+    function createHero() {
+        var man = {};
+        
+        man._adjective = 'Dark';
+        man.getTitle = function getTagline(){
+            return 'The ' + this._adjective + ' Knight';
+        };
+
+        return man;
+     }
+
+    // good
+    function createHero() {
+        var man = {},
+            adjective = 'Dark';
+        
+        man.getTitle = function getTagline(){
+            return 'The ' + adjective + ' Knight';
+        };
+
+        return man;
+     }
+     ```
 
   - Use one `var` declaration for multiple variables and declare each variable on a newline.
 
@@ -1043,17 +1083,6 @@
     });
     ```
 
-  - Use a leading underscore `_` when naming private properties
-
-    ```javascript
-    // bad
-    this.__firstName__ = 'Panda';
-    this.firstName_ = 'Panda';
-
-    // good
-    this._firstName = 'Panda';
-    ```
-
   - When saving a reference to `this` use `_this`.
 
     ```javascript
@@ -1269,40 +1298,33 @@
   **[[⬆]](#TOC)**
 
 
-## <a name='modules'>Modules</a>
+## <a name='jquery'>jQuery and Angular</a>
 
-  - The module should start with a `!`. This ensures that if a malformed module forgets to include a final semicolon there aren't errors in production when the scripts get concatenated. [Explanation](https://github.com/airbnb/javascript/issues/44#issuecomment-13063933)
-  - The file should be named with camelCase, live in a folder with the same name, and match the name of the single export.
-  - Add a method called noConflict() that sets the exported module to the previous version and returns this one.
-  - Always declare `'use strict';` at the top of the module.
+  - Don't manipulate DOM in Angular Controllers. Use directives when DOM needs to be manipulated.
+
+  - Don't use global native objects directly, always inject the Angular wrappers; this makes testing much easier.
+    
+    ```javascript
+    // bad
+    function MyController() {
+        setTimeout(window.alert('Boop!'));
+    }
+
+    // good
+    function MyController($window, $setTimeout) {
+        $setTimeout($window.alert('Boop!'));
+    }
+    
+  - List native objects (ones starting with $) first in a function dependency parameter list.
 
     ```javascript
-    // fancyInput/fancyInput.js
+    // bad
+    function MyController(myService, $http) { ... }
+    
+    // good
+    function MyController($http, myService) { ... }
 
-    !function(global) {
-      'use strict';
-
-      var previousFancyInput = global.FancyInput;
-
-      function FancyInput(options) {
-        this.options = options || {};
-      }
-
-      FancyInput.noConflict = function noConflict() {
-        global.FancyInput = previousFancyInput;
-        return FancyInput;
-      };
-
-      global.FancyInput = FancyInput;
-    }(this);
-    ```
-
-    **[[⬆]](#TOC)**
-
-
-## <a name='jquery'>jQuery</a>
-
-  - Prefix jQuery object variables with a `$`.
+  - Prefix jQuery object variables (including those returned by angular.element) with a `$`.
 
     ```javascript
     // bad
@@ -1360,27 +1382,6 @@
     ```
 
     **[[⬆]](#TOC)**
-
-
-## <a name='es5'>ECMAScript 5 Compatibility</a>
-
-  - Refer to [Kangax](https://twitter.com/kangax/)'s ES5 [compatibility table](http://kangax.github.com/es5-compat-table/)
-
-  **[[⬆]](#TOC)**
-
-
-## <a name='testing'>Testing</a>
-
-  - **Yup.**
-
-    ```javascript
-    function() {
-      return true;
-    }
-    ```
-
-    **[[⬆]](#TOC)**
-
 
 ## <a name='performance'>Performance</a>
 
